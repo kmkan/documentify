@@ -1,4 +1,4 @@
-# Documentify 📝
+# Documentify 
 
 Minimalist real-time collaborative document editor — built from scratch.  
 Create rooms, collaborate instantly with others, and auto-save your work effortlessly.
@@ -7,7 +7,7 @@ Create rooms, collaborate instantly with others, and auto-save your work effortl
 
 ## 🌐 Live Demo
 
-👉 [Visit Documentify](https://documentify-vdh1.vercel.app/)
+[Visit Documentify](https://documentify-vdh1.vercel.app/)
 
 ---
 
