@@ -7,6 +7,7 @@ export default function Editor() {
   const { roomId } = useParams();
   const [document, setDocument] = useState('');
   const [saveStatus, setSaveStatus] = useState('Saved');
+  const [saveTimeout, setSaveTimeout] = useState(null);
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -36,15 +37,17 @@ export default function Editor() {
     setDocument(newDoc);
     setSaveStatus('Saving...');
     socket.emit('send-changes', { roomId, document: newDoc });
-  };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
+  
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+  
+    const timeout = setTimeout(() => {
       saveDocument();
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [document]);
+    }, 500);
+  
+    setSaveTimeout(timeout);
+  };  
 
   const saveDocument = async () => {
     try {
@@ -57,14 +60,62 @@ export default function Editor() {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Editing Room: {roomId}</h1>
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <div style={styles.roomName}>{roomId}</div>
+        <div style={styles.saveStatus}>{saveStatus}</div>
+      </div>
       <textarea
-        style={{ width: '100%', height: '80vh', fontSize: '1rem' }}
+        style={styles.textarea}
         value={document}
         onChange={handleChange}
+        placeholder="Start writing..."
       />
-      <div style={{ marginTop: '1rem', fontStyle: 'italic' }}>{saveStatus}</div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    height: '100vh',
+    width: '100vw',
+    maxWidth: '100vw',
+    maxHeight: '100vh',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+  },  
+  header: {
+    padding: '1rem 2rem',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid #eee',
+    backgroundColor: '#fafafa',
+  },
+  roomName: {
+    fontFamily: 'Poppins, sans-serif',
+    fontSize: '1.5rem',
+    fontWeight: '600',
+    color: '#333',
+  },  
+  saveStatus: {
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.9rem',
+    color: 'black', 
+    fontStyle: 'normal',
+  },  
+  textarea: {
+    flex: 1,
+    width: '100%',
+    padding: '2rem',
+    fontSize: '1rem',
+    border: 'none',
+    outline: 'none',
+    resize: 'none',
+    backgroundColor: '#f9f9f9',
+    color: '#333',
+    overflow: 'auto',    
+  },  
+};

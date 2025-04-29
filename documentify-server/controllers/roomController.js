@@ -1,9 +1,17 @@
 import Room from '../models/Room.js';
+import slugify from 'slugify';
 
 export const createRoom = async (req, res) => {
-  const { roomId } = req.body;
+  const { roomName } = req.body; 
   try {
-    const room = new Room({ roomId });
+    const slug = slugify(roomName, { lower: true });
+
+    let existingRoom = await Room.findOne({ roomId: slug });
+    if (existingRoom) {
+      return res.status(200).json(existingRoom); 
+    }
+
+    const room = new Room({ roomId: slug });
     await room.save();
     res.status(201).json(room);
   } catch (error) {

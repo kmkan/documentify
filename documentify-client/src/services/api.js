@@ -4,8 +4,8 @@ const API = axios.create({
   baseURL: 'http://localhost:5000/api',
 });
 
-export const createRoom = async (roomId) => {
-  const response = await API.post('/rooms', { roomId });
+export const createRoom = async (roomName) => {
+  const response = await API.post('/rooms', { roomName }); 
   return response.data;
 };
 
