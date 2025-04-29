@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createRoom as createRoomAPI } from '../services/api';
 
 export default function Home() {
   const [createRoomName, setCreateRoomName] = useState('');
   const [joinRoomId, setJoinRoomId] = useState('');
   const navigate = useNavigate();
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (createRoomName.trim()) {
       const roomId = generateRoomId(createRoomName);
-      navigate(`/room/${roomId}`);
+
+      try {
+        await createRoomAPI(roomId);  // 👈 call backend API here
+        navigate(`/room/${roomId}`);
+      } catch (error) {
+        console.error('Failed to create room', error);
+      }
     }
   };
 
