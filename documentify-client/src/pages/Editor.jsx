@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getRoom, updateRoom } from '../services/api';
+import socket from '../services/socket';
 
 export default function Editor() {
   const { roomId } = useParams();
   const [document, setDocument] = useState('');
   const [saveStatus, setSaveStatus] = useState('Saved');
 
-  // Load document from backend
   useEffect(() => {
     const fetchDocument = async () => {
       try {
@@ -17,8 +17,26 @@ export default function Editor() {
         console.error('Failed to load room', error);
       }
     };
+
     fetchDocument();
+
+    socket.emit('join-room', roomId);
+
+    socket.on('receive-changes', (newDocument) => {
+      setDocument(newDocument);
+    });
+
+    return () => {
+      socket.off('receive-changes');
+    };
   }, [roomId]);
+
+  const handleChange = (e) => {
+    const newDoc = e.target.value;
+    setDocument(newDoc);
+    setSaveStatus('Saving...');
+    socket.emit('send-changes', { roomId, document: newDoc });
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -26,7 +44,7 @@ export default function Editor() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [document]); 
+  }, [document]);
 
   const saveDocument = async () => {
     try {
@@ -36,11 +54,6 @@ export default function Editor() {
       console.error('Failed to save document', error);
       setSaveStatus('Failed to Save');
     }
-  };
-
-  const handleChange = (e) => {
-    setDocument(e.target.value);
-    setSaveStatus('Saving...');
   };
 
   return (
