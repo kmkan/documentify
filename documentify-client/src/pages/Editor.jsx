@@ -8,6 +8,7 @@ export default function Editor() {
   const [document, setDocument] = useState('');
   const [saveStatus, setSaveStatus] = useState('Saved');
   const [saveTimeout, setSaveTimeout] = useState(null);
+  const [userCount, setUserCount] = useState(1); 
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -18,19 +19,24 @@ export default function Editor() {
         console.error('Failed to load room', error);
       }
     };
-
+  
     fetchDocument();
-
+  
     socket.emit('join-room', roomId);
-
+  
     socket.on('receive-changes', (newDocument) => {
       setDocument(newDocument);
     });
-
+  
+    socket.on('user-count', (count) => {
+      setUserCount(count);
+    });
+  
     return () => {
       socket.off('receive-changes');
+      socket.off('user-count');
     };
-  }, [roomId]);
+  }, [roomId]);  
 
   const handleChange = (e) => {
     const newDoc = e.target.value;
@@ -62,7 +68,12 @@ export default function Editor() {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <div style={styles.roomName}>{roomId}</div>
+        <div style={styles.headerLeft}>
+          <div style={styles.roomName}>{roomId}</div>
+          <div style={styles.usersOnline}>
+            {userCount} {userCount === 1 ? 'user' : 'users'} online
+          </div>
+        </div>
         <div style={styles.saveStatus}>{saveStatus}</div>
       </div>
       <textarea

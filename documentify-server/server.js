@@ -37,13 +37,27 @@ io.on('connection', (socket) => {
   socket.on('join-room', (roomId) => {
     socket.join(roomId);
     console.log(`Socket ${socket.id} joined room ${roomId}`);
+
+    const users = io.sockets.adapter.rooms.get(roomId)?.size || 0;
+    io.to(roomId).emit('user-count', users);
   });
 
   socket.on('send-changes', ({ roomId, document }) => {
     socket.to(roomId).emit('receive-changes', document);
   });
 
+  socket.on('disconnecting', () => {
+    socket.rooms.forEach((roomId) => {
+      if (roomId !== socket.id) { 
+        setTimeout(() => { 
+          const users = io.sockets.adapter.rooms.get(roomId)?.size || 0;
+          io.to(roomId).emit('user-count', users);
+        }, 0);
+      }
+    });
+  });
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
-});
+});  
