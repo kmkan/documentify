@@ -10,19 +10,38 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app); 
+
+// --- START: MODIFIED CORS CONFIGURATION ---
+
+// Define allowed origins for CORS
+const allowedOrigins = [
+  process.env.CLIENT_URL, // For your deployed app
+  'http://localhost:3000'  // For local development
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PATCH'],
+};
+
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL, 
-    methods: ['GET', 'POST'],
-  }
+  cors: corsOptions
 });
+
+app.use(cors(corsOptions));
+
+// --- END: MODIFIED CORS CONFIGURATION ---
+
 
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({
-  origin: process.env.CLIENT_URL, 
-  methods: ['GET', 'POST', 'PATCH'],
-}));
 app.use(express.json());
 
 app.use('/api/rooms', roomRoutes);
@@ -63,4 +82,4 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
-});  
+});
